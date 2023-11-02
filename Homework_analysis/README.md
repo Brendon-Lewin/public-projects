@@ -45,6 +45,7 @@ CREATE TABLE homework_staff AS SELECT * FROM read_csv_auto('~/miniconda3/Noteboo
 
 ## H0s vs not submitted
 This analysis compares the number of H0s set to the number of homework records marked as not submitted to assertain which is a better measure of non submission.
+The teacher name columns were in different formats so the H0 count one had to be modified to match so the tables could be joined.
 
 
 ```sql
