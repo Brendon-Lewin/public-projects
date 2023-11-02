@@ -1,3 +1,7 @@
+# Analysis of homework hand-in rates and evaluation of different calculation methods
+
+This analysis calculates the different hoemwork hand in percentages using a variety of different methods using data from satchel one (a homework tracking system which is currently underused) and the homework detention data from the student information management system (H0s).
+
 ```python
 %load_ext sql
 %sql duckdb://
