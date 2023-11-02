@@ -299,7 +299,7 @@ open_bucket_3 AS (
     USING (candidate_number)
     )
 
-SELECT 
+SELECT f5.candidate_number,
     f5.eng_points AS Eng_pts,
     f5.maths_points AS Maths_pts,
     f5.ebacc_1_grade AS E_1_pts,
@@ -330,7 +330,7 @@ ORDER BY candidate_number
 <span style="None">Running query in &#x27;duckdb://&#x27;</span>
 
 
-
+NB: The candidate number column has been removed for GDPR reasons
 
 
 <table>
