@@ -913,244 +913,27 @@ OR E_3_pts <> "3rd_ebacc"::numeric
 <span style="None">Running query in &#x27;duckdb://&#x27;</span>
 
 
-    TableNotFoundError: If using snippets, you may pass the --with argument explicitly.
-    For more details please refer: https://jupysql.ploomber.io/en/latest/compose.html#with-argument
-    
-    There is no table with name 'A8_table'.
-    Did you mean: 'A8_table'
-    
-    
-    Original error message from DB driver:
-    (duckdb.duckdb.BinderException) Binder Error: Column "candidate_number" does not exist on left side of join!
-    [SQL: WITH A8_table AS (
-    WITH eng_bucket AS (
-        SELECT candidate_number, MAX(grade)::numeric * 2 AS grade
-        FROM student_grades
-        WHERE subject = 'gcse_(9-1)_english_literature'
-        OR subject = 'gcse_(9-1)_english_language'
-        GROUP BY candidate_number
-        ),
-    
-    top_eng AS (
-        SELECT sg.candidate_number,
-            CASE WHEN e_lang.grade >= e_lit.grade THEN 'gcse_(9-1)_english_language'
-            WHEN e_lang.grade < e_lit.grade THEN 'gcse_(9-1)_english_literature' END AS subject
-        FROM student_grades as sg
-        INNER JOIN (
-            SELECT sub.candidate_number, grade
-            FROM student_grades as sub
-            WHERE subject = 'gcse_(9-1)_english_language') AS e_lang
-        ON sg.candidate_number = e_lang.candidate_number
-        INNER JOIN (
-            SELECT sub.candidate_number, grade
-            FROM student_grades as sub
-            WHERE subject = 'gcse_(9-1)_english_literature') AS e_lit
-        ON sg.candidate_number = e_lit.candidate_number
-        ),
-        
-    maths_bucket AS (
-        SELECT candidate_number, MAX(grade)::numeric * 2 AS grade
-        FROM student_grades
-        WHERE subject = 'gcse_(9-1)_mathematics'
-        GROUP BY candidate_number
-        ),
-    
-    ebacc_bucket_1 AS (
-        SELECT DISTINCT candidate_number, sub.subject, sub.grade
-        FROM student_grades as stu_gra
-        LEFT JOIN(
-            SELECT candidate_number, subject, grade
-            FROM student_grades as sub
-            INNER JOIN ebacc_subjects
-            USING(subject)
-            WHERE ebacc = 1
-            AND subject NOT IN ('gcse_(9-1)_english_language', 'gcse_(9-1)_mathematics', 'gcse_(9-1)_english_literature')
-            AND candidate_number = stu_gra.candidate_number
-            ORDER BY grade DESC, subject
-            LIMIT 1) AS sub
-        USING(candidate_number)
-        ),
-    
-    ebacc_bucket_2 AS (
-        SELECT DISTINCT candidate_number, sub.subject, sub.grade
-        FROM student_grades as stu_gra
-        LEFT JOIN(
-            SELECT candidate_number, subject, grade
-            FROM student_grades as sub
-            INNER JOIN ebacc_subjects
-            USING(subject)
-            WHERE ebacc = 1
-            AND subject NOT IN ('gcse_(9-1)_english_language', 'gcse_(9-1)_mathematics', 'gcse_(9-1)_english_literature')
-            AND candidate_number = stu_gra.candidate_number
-            ORDER BY grade DESC, subject
-            LIMIT 1 OFFSET 1) AS sub
-        USING(candidate_number)
-        ),
-    
-    ebacc_bucket_3 AS (
-        SELECT DISTINCT candidate_number, sub.subject, sub.grade
-        FROM student_grades as stu_gra
-        LEFT JOIN(
-            SELECT candidate_number, subject, grade
-            FROM student_grades as sub
-            INNER JOIN ebacc_subjects
-            USING(subject)
-            WHERE ebacc = 1
-            AND subject NOT IN ('gcse_(9-1)_english_language', 'gcse_(9-1)_mathematics', 'gcse_(9-1)_english_literature')
-            AND candidate_number = stu_gra.candidate_number
-            ORDER BY grade DESC, subject 
-            LIMIT 1 OFFSET 2) AS sub
-        USING(candidate_number)
-        ),
-    
-    first_5 AS (
-        SELECT e.candidate_number,
-            e.grade AS eng_points, 
-            m.grade AS maths_points,
-            eb1.subject AS ebacc_1_subject,
-            eb1.grade AS ebacc_1_grade,
-            eb2.subject AS ebacc_2_subject,
-            eb2.grade AS ebacc_2_grade,
-            eb3.subject AS ebacc_3_subject,
-            eb3.grade AS ebacc_3_grade
-        FROM eng_bucket as e
-        INNER JOIN maths_bucket as m
-        USING(candidate_number)
-        INNER JOIN ebacc_bucket_1 as eb1
-        USING(candidate_number)
-        INNER JOIN ebacc_bucket_2 as eb2
-        USING(candidate_number)
-        INNER JOIN ebacc_bucket_3 as eb3
-        USING(candidate_number)
-        ),
-    
-    open_bucket_1 AS (
-        SELECT first_5.candidate_number, sub.subject, sub.grade
-        FROM first_5
-        LEFT JOIN (
-            SELECT candidate_number, sg.subject, grade
-            FROM student_grades as sg
-            WHERE sg.subject NOT IN ('gcse_(9-1)_mathematics',
-            (SELECT subject
-            FROM top_eng
-            WHERE sg.candidate_number = top_eng.candidate_number),
-            (SELECT subject
-            FROM ebacc_bucket_1 as sub
-            WHERE sub.candidate_number = sg.candidate_number), 
-            (SELECT subject
-            FROM ebacc_bucket_2 as sub
-            WHERE sub.candidate_number = sg.candidate_number),
-            (SELECT subject
-            FROM ebacc_bucket_3 as sub
-            WHERE sub.candidate_number = sg.candidate_number)
-            )
-            AND sg.candidate_number = first_5.candidate_number
-            ORDER BY grade DESC, sg.subject
-            LIMIT 1 ) AS sub
-        USING (candidate_number)
-        ),
-    
-    open_bucket_2 AS (
-        SELECT first_5.candidate_number, sub.subject, sub.grade
-        FROM first_5
-        LEFT JOIN (
-            SELECT candidate_number, sg.subject, grade
-            FROM student_grades as sg
-            WHERE sg.subject NOT IN ('gcse_(9-1)_mathematics',
-            (SELECT subject
-            FROM top_eng
-            WHERE sg.candidate_number = top_eng.candidate_number),
-            (SELECT subject
-            FROM ebacc_bucket_1 as sub
-            WHERE sub.candidate_number = sg.candidate_number), 
-            (SELECT subject
-            FROM ebacc_bucket_2 as sub
-            WHERE sub.candidate_number = sg.candidate_number),
-            (SELECT subject
-            FROM ebacc_bucket_3 as sub
-            WHERE sub.candidate_number = sg.candidate_number)
-            )
-            AND candidate_number = first_5.candidate_number
-            ORDER BY grade DESC, sg.subject
-            LIMIT 1 OFFSET 1 ) AS sub
-        USING (candidate_number)
-        ),
-    
-    open_bucket_3 AS (
-        SELECT first_5.candidate_number, sub.subject, sub.grade
-        FROM first_5
-        LEFT JOIN (
-            SELECT candidate_number, sg.subject, grade
-            FROM student_grades as sg
-            WHERE sg.subject NOT IN ('gcse_(9-1)_mathematics',
-            (SELECT subject
-            FROM top_eng
-            WHERE sg.candidate_number = top_eng.candidate_number),
-            (SELECT subject
-            FROM ebacc_bucket_1 as sub
-            WHERE sub.candidate_number = sg.candidate_number), 
-            (SELECT subject
-            FROM ebacc_bucket_2 as sub
-            WHERE sub.candidate_number = sg.candidate_number),
-            (SELECT subject
-            FROM ebacc_bucket_3 as sub
-            WHERE sub.candidate_number = sg.candidate_number)
-            )
-            AND candidate_number = first_5.candidate_number
-            ORDER BY grade DESC, sg.subject
-            LIMIT 1 OFFSET 2 ) AS sub
-        USING (candidate_number)
-        )
-    
-    SELECT 
-        f5.eng_points AS Eng_pts,
-        f5.maths_points AS Maths_pts,
-        f5.ebacc_1_grade AS E_1_pts,
-        f5.ebacc_2_grade AS E_2_pts,
-        f5.ebacc_3_grade AS E_3_pts,
-        ob1.grade AS O_1_pts,
-        ob2.grade AS O_2_pts,
-        ob3.grade AS O_3_pts,
-        'English' AS English,
-        'Maths' AS Maths,
-        REPLACE(REPLACE(f5.ebacc_1_subject, 'gcse_(9-1)_', ''), 'gcse(9-1)_da_', '') AS E_1_sub,
-        REPLACE(REPLACE(f5.ebacc_2_subject, 'gcse_(9-1)_', ''), 'gcse(9-1)_da_', '') AS E_2_sub,
-        REPLACE(REPLACE(f5.ebacc_3_subject, 'gcse_(9-1)_', ''), 'gcse(9-1)_da_', '') AS E_3_sub,
-        REPLACE(REPLACE(ob1.subject, 'gcse_(9-1)_', ''), 'gcse(9-1)_da_', '') AS O_1_sub,
-        REPLACE(REPLACE(ob2.subject, 'gcse_(9-1)_', ''), 'gcse(9-1)_da_', '') AS O_2_sub,
-        REPLACE(REPLACE(ob3.subject, 'gcse_(9-1)_', ''), 'gcse(9-1)_da_', '') AS O_3_sub
-    FROM first_5 AS f5
-    INNER JOIN open_bucket_1 AS ob1
-    USING (candidate_number)
-    INNER JOIN open_bucket_2 AS ob2
-    USING (candidate_number)
-    INNER JOIN open_bucket_3 AS ob3
-    USING (candidate_number)
-    ORDER BY candidate_number)
-    -- Error checking, table shows results that do not match the official figures, empty table is good!
-    SELECT candidate_number,
-        E_1_pts AS calc_e_1,
-        "1st_ebacc"::numeric AS actual_e_1,
-        E_2_pts AS calc_e_2,
-        "2nd_ebacc"::numeric AS actual_e_2,
-        E_3_pts AS calc_e3,
-        "3rd_ebacc"::numeric AS actual_e_3,
-        O_1_pts AS calc_o_1,
-        "1st_open"::numeric AS actual_o_1,
-        O_2_pts AS calc_o_2,
-        "2nd_open"::numeric AS actual_o_2,
-        O_3_pts AS calc_o_3,
-        "3rd_open"::numeric AS actual_o_3
-    FROM A8_table
-    INNER JOIN attainment_8_scores as A8
-    USING (candidate_number) 
-    WHERE O_1_pts <> "1st_open"::numeric
-    OR O_2_pts <> "2nd_open"::numeric
-    OR O_3_pts <> "3rd_open"::numeric
-    OR E_1_pts <> "1st_ebacc"::numeric
-    OR E_2_pts <> "2nd_ebacc"::numeric
-    OR E_3_pts <> "3rd_ebacc"::numeric]
-    (Background on this error at: https://sqlalche.me/e/20/f405)
-    
-    If you need help solving this issue, send us a message: https://ploomber.io/community
 
+
+
+<table>
+    <thead>
+        <tr>
+            <th>candidate_number</th>
+            <th>calc_e_1</th>
+            <th>actual_e_1</th>
+            <th>calc_e_2</th>
+            <th>actual_e_2</th>
+            <th>calc_e3</th>
+            <th>actual_e_3</th>
+            <th>calc_o_1</th>
+            <th>actual_o_1</th>
+            <th>calc_o_2</th>
+            <th>actual_o_2</th>
+            <th>calc_o_3</th>
+            <th>actual_o_3</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
