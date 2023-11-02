@@ -1,5 +1,6 @@
 # A8 and P8 subjects 2023
 The aim of this analysis is the produce a table showing which subjects went into each A8 / P8 bucket and how they contributed to the school results overall.
+Please note that the candidate numbers have been removed from the resutls table for GDPR reasons.
 
 
 ```python
