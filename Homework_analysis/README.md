@@ -4,8 +4,6 @@
 %config SqlMagic.displaylimit = None
 ```
 
-    [33mThere's a new jupysql version available (0.10.2), you're running 0.10.1. To upgrade: pip install jupysql --upgrade[0m
-
 
 
 <span style="None">displaylimit: Value None will be treated as 0 (no limit)</span>
